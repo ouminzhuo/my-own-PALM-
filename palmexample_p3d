@@ -1,0 +1,275 @@
+from distutils.core import setup
+
+
+&initialization_parameters
+        !-----------------------------!
+        !----------GRID---------------!
+        !-----------------------------!
+        ! dx,dy,dz all in (m)
+
+        nx = 539, ny = 359, nz = 120,   ! actual X_Y grid number equal to nx+1,ny+1; (nx+1)*dx & (ny+1)*dy; in addiction, in z direction, the actual 
+                                        !number equal to nz+2, one in the layer and other in the top
+        dx = 10.0, dy = 10.0, dz = 10.0,
+        dz_max = 30.0, ! allowed maximum vertical grid spacing in m; related to dz_stretch_factor and dz_stretch_level
+        dz_stretch_level = 1200,
+        dz_stretch_factor=1.02,
+        dz_stretch_level_end=999999.
+        !approximation ='boussinesq',
+        !-----------------------------!
+        !-----MODE setting------------!
+        !-----------------------------!
+	approximation = 'anelastic',
+        check_realistic_q= .T.,
+        cloud_droplets= .F.,  !parameter to swith on LCM
+        conserve_volume_flow=.F., !if on, bc_lr='cyclic',bc_ns='cyclic',dp_external=.F.
+        conserve_volume_flow_mode='default',     ! only effect if conserve_volume_flow=.T. 
+                                                !'default' --> 'initial_prefiles'
+                                                !'bulk_velocity'
+        !       dp_external=.F., !external pressure gradient switch
+        !       dp_smooth=.F., !
+        !       dp_leverl_b,
+        !       dpdxy, #!values of the external pressure gradient applied in x and y
+        !       e_init,
+        !       e_min,
+        flux_input_mode='application-specific',         ! kinematic  <----- approximation='boussinesq'
+                                                        ! dynamic
+        flux_output_mode='application-specific',        ! same as below
+        regerence_state='initial_profile',              ! this parameter defines what is used as reference state in the buoyancy term
+                                                        ! 'initial_profile'  <---pt_surface, pt_vertical_gradient to set the initial profile
+                                                        ! 'horizontal_average' <---
+                                                        ! 'single_value'
+
+
+        !-----------------------------!
+        !-----Numerics setting--------!
+        !-----------------------------!
+        call_psolver_at_allsubsteps=.T.,        ! switch to steer the call of the pressure solver ,if momentum_advec='ws-scheme', it should be used
+        cfl_factor=0.9,                         ! Time step limiting factor,maximum allowed time step dt_max=dt=dt_max*cfl_max
+                                                ! default is 0.9 <== third order runge-kutta scheme and euler scheme; 
+                                                ! 0.8<==second-order Runge-Kutta scheme
+        fft_method='fftw',                      ! FFT-method to be used; 1.'temperton-algorithm'; 2. 'singleton-algorithm';3. 'fftw'
+        loop_optimization='cache',              ! 1.'cache' loop with i and j; 2. 'vector', 3d-loops 
+        mg_cycles=4,                            ! Number of cycles to be used with the multigrid scheme; for cyclic boundary,mg_cycles=2; 
+                                                ! for non-cyclic,mg_cycles=4
+        momentum_advec= 'ws-scheme',            ! Advection scheme to be used for the momentum equations
+        scalar_advec= 'ws-scheme',
+        psolver='multigrid',
+        pt_damping_factor=0.0,                   ! factor for damping the potential temperature
+        pt_damping_width=0.0,                    ! width of the damping domain of the potential temperature (in m)
+        rayleigh_damping_height =800.0,          ! 2/3 * domain height
+        rayleigh_damping_factor= 0.01,
+        !-----------------------------!
+        !-----Physics setting---------!
+        !-----------------------------!
+        omega=7.29212E-5, ! calculate Coriolis parameters: f=2.0*omega*sin(latitude); f*=2.0*omega*cos(latitude)
+        latitude=20.6694,
+	longitude=110.6153,
+        use_fixed_date=.F.,
+        use_fixed_time=.T.,
+        origin_date_time= '2017-06-19 00:00:00 +00',    ! UTC +00 ==> time region
+        !-----------------------------!
+        !-----Boundary setting--------!
+        !-----------------------------!
+        bc_e_b='neumann',                       
+        bc_lr='cyclic',                         ! boundary condition along X 
+        bc_ns='cyclic',                         ! boundary condition along y
+        random_heatflux= .F.,
+        humidity= .T.,
+        constant_flux_layer=.T.,                ! Parameter to swith on a constant flux layer at the bottom boundary
+        turbulent_inflow=.F.,                    ! Generates a turbulent inflow at side boundaries using a turbulence recycling method.
+                                                ! if turbulent_inflow=.T.; bc_lr='dirichlet/radiation'
+        use_free_convection_scaling=.F.,         ! Parameter to swich on the use of the local free convection velocity scale w_lfc
+        z0h_factor=1.0,                         ! factor for calculating the roughness length for scalars
+                                                ! used to define the roughness length for scalars z0h =z0h_factor*roughness_length
+        zeta_max=20.0,                          ! upper limit of the stability parameter zeta=z_mo/L, 
+                                                ! with z_mo being the height of the constant flux layer, L being the Obuklov length
+        zeta_min=-20.0,
+        !---------------------
+        !--Initialization--
+        !---------------------
+        calc_soil_moisture_during_spingup=.F.,  !Height where the damping layer begins in the 1d-model
+        dt=1,
+        initializing_actions = 'inifor set_constant_profiles',  ! initialization actions to be carried out.
+                                                                ! 'set_constant_profiles' a horizontal wind profile consisting of linear sections
+                                                                ! 'initialize_vortex' only used by user-interface
+                                                                ! 'initialize_ptanom' be used for tests of scalar advection schemes
+                                                                ! 'inifor' initialization with provided input data derived from larger-scale model
+        
+        ! ------Atmospheric stability ------ !
+        pt_surface=300.0,                                       ! surface potential temperature (in Kelvin) constructed with pt_vertical_gradient and
+                                                                ! pt_vertical_gradient and pt_vertical_gradient_level
+        pt_surface_heating_rate=0.0,                            ! linear surface temperature increase in K/h related to pt_surface_initial_change
+        pt_surface_initial_change=0.0,                          ! change in surface temperature to be made at the beginning of the 3d run (in K)
+        pt_vertical_gradient=1.0,0.5,                           ! temperature gradient of the initial temperature profile (in K/100m)
+        pt_vertical_gradient_level=500.0,1000.0,                ! 500<z<1000 dpt/dz=1k/100m; 1000<z dpt/dz=0.5k/100m
+        q_surface=0.0,                                          ! surface water vapor / total water mixing ratio (kg/kg)
+        q_surface_initial_change=0.0,                           ! change in surface water vapor/ total water mixing ratio to be made 
+                                                                ! at the beginning of the 3d run (kg/kg)
+        q_vertical_gradient=0.001,0.0005,                       ! Humidity gradient of the initialhumidity profile (in 1/100m)
+        q_vertical_gradient_level=500.0,1000.0,                 ! same as below
+        surface_pressure=1013.25,                               ! Atmospheric pressure at the surface (in hPa)
+        s_surface=0.0,                                          ! surface value of the passive scalar (in kg m-3 (partcles) or ppm(gases)))
+        s_surface_initial_change=0.0,                           ! change in surface scalar concentration to be  made at the beginning of the 3d run 
+        s_vertical_gradient=0.1,0.05,
+        s_vertical_gradient_level=500.0,1000.0,                 ! Same as below
+        
+
+
+&runtime_parameters
+        
+
+        !-----------------------------------------
+        !		data output
+        !------------------------------------------
+
+        ! Quantities for which 2d cross section and / or 3d volume data are to be output
+        ! 2D_NC_FILE : DATA_2D_XY_NETCDF, DATA_2D_XZ_NETCDF and DATA_2D_YZ_NETCDF
+        ! 3D_NC_FILE : DATA_3D_NETCDF
+        ! 2D_NC_AV_FILE: DATA_2D_XY_AV_NETCDF, DATA_2D_XZ_AV_NETCDF, DATA_2D_YZ_AV_NETCDF, DATA_3D_AV_NETCDF
+        ! ----------------- variable list -----------------
+        ! e: SGS turbulence kinetic energy
+        ! p: perturbation pressure
+        ! pc: particle/droplet concentration 
+        ! pr: mean particle/ droplet radius
+        ! q: water vapor mixing ratio
+        ! rh: relative humidity
+        ! rho: density          #requires ocean= .T.
+        ! t*: (near surface) characteristic 
+        ! ta: air temperature 
+        ! ta_2m*: 2-m air temperature
+        ! theta: potential temperature
+        ! thetav: virtual potential temperature
+        ! ti: absolute values of the curl of the velocity vector,which can be interpreted as a qualitative measure of turbulence intensity (ti)
+        ! u: u-component of the velocity
+        ! uu: product of u and w to allow for computation of <u'u'>
+        ! uv: product of u and v to allow for computation of <u'v'>
+        ! uw: product of u and w to allow for computation of <u'w'>
+        ! us*: (near surface) friction velocity
+        ! v: v-component of the velocity
+        ! vf50m*: volume-flux rate intergrated up to 50m above surface
+        ! vf100m*: volume-flux rate intergrated up to 100m above surface # to evaluate katabatic flows
+        ! vfd50m*: volume-flux density intergrated up to 50m above surface
+        ! vfd100m*: volume-flux density intergrated up to 100m above surface 
+        ! vu: product of v and u to allow for computation of <v'u'>
+        ! vv: product of v and v to allow for computation of <v'v'>
+        ! vw: product of v and w to allow for computation of <v'w'>
+        ! w: w-component of the velocity
+        ! wu: product of w and u to allow for computation of <w'u'>
+        ! wv: product of w and v to allow for computation of <w'v'>
+        ! ww: product of w and w to allow for computation of <w'w'>
+        ! wdir: horizontal wind direction
+        ! ws: product of w and s to allow for computation of <w's'>
+        ! wspeed: horizontal wind speed
+        ! wtheta: product of w and theta to allow for computation of <w'theta'>
+        ! z0*: roughness length
+        ! z0h*: roughness length for scalar quantities
+        ! ----important ==> cross section data can be output by appending string '_xy','_xz', or '_yz' to the quantities like w_xy
+        !               ==> time-averaged output is created by appending the string '_av', like w_xy_av
+        data_output='u','v','w','theta','p','e',
+                        'z0*_xy','z0h*_xy','tsurf*_xy','theta_2m*_xy','wspeed','wspeed_10m*_xy',
+
+        !-----------------------------------------
+        !		data_output_pr
+        !------------------------------------------
+        ! quantities for which vertical profiles (horizontally averaged) are to be output
+        ! temporal interval of the outout times of profiles is assigned via the parameter --> dt_dopr
+        ! u-v levels =={e,e*,l,rho(air density),rh,theta,u,u*2(variance or horizontal momentum flux),v,v*2,
+        !               w*p*:dz(transport of resolved-scale TKE due to pressure fluctuations)}
+        ! w-level    =={w,w*2,w"s"(subgrid-scale vertical turbulent scalar concentration flux (requires passive-scalar=.T.)),
+        !               w*s*(resolved vertical turbulent scalar concentration flux),wu(u-component of the total vertical turbulent momentum flux),
+        !               wv(v-component of the total vertical turbulent momentum flux)}
+        !       '#' hash led indicate the initial profile output, like '#u'
+        data_output_pr = 'e','l','w"u"','w*u*','wu','u','u*2',
+                        'wu','wv','v','v*2','w','w*2','p','rho','w*p*:dz'
+        averaging_interval=10.0,                ! averaging intervaL for all output of temporally averaged data(in s)
+        dt_averaging_input=0.0,                 ! temporal interval of data which are subject to temporal averaging (in s) 
+        dt_data_output=60.0,                    ! Temporal interval at which data (3d volume data (instantaneous or time averaged), 
+                                                !cross sections (instantaneous or time averaged), vertical profiles, spectra) shall be output (in s).
+        ! dt_data_output_av
+        ! dt_dopr=10.0,                         ! temporal interval at which data of vertical profiles shall be output; data_dopr == dt_data_output
+                                                ! if dt_dopr=900 and 3600 second all, end-time >= 3600.0
+        dt_dopr_listing=60.0, 
+        dt_dots=60.0,                           ! temporal interval at which time series data shall be output (in s)
+        ! --- below is equal to dt_data_output, normally ------
+        ! dt_do3d=10.0,
+        ! dt_do2d_xy=10.0,
+        ! dt_do2d_xz=10.0,
+        ! dt_do2d_yz=10.0,
+        ! ------------------------------------------------------
+        dt_run_control=60.0,                    ! temporal interval at which run control output is to be made (in s) 
+        force_print_header=.F.,                 ! steering of header output to the local file RUN_CONTROL
+        skip_time_dopr=0.0,                     ! temporal interval at which data output begins
+        ! --------------------------
+        ! ------ Run steering ------
+        ! --------------------------
+        create_disturbances = .T.,              ! Switch to impose random perturbations to the horizontal velocity field.
+        disturbance_amplitude=0.25,             ! Maximum perturbation amplitude of the random perturbations imposed to the horizontal velocity field
+        disturbance_energy_limit=0.01,          ! unpper limit value of the perturbation energy of the velocity field 
+                                                ! used as a criterion for imposing random perturbations in(m2/s2)
+        dt=1.0,                                 ! time step to be used by 3-d model (in s)
+        dt_max=100,                             ! Maximum allowed value of the time step (in s)
+        end_time = 3601.0,                      ! Simulation time of the 3Dmodel (in s)
+        ! dt_restart=99999999.9,                ! Temporal interval at which a new restart run is to be carried out
+        ! restart_data_format='fortran_binary', ! binary format of the input and output restart files. 
+                                                ! include 'fortran_binary','mpi','mpi_shared_memory'
+        termination_time_needed=35.0,           ! CPU time needed for terminal actions at the end of a run in batch mode (in s)
+        netcdf_data_format=5, ! or 6, initial 4
+        netcdf_deflate=0,
+        ! ------------------------------------
+        ! ---processor grid / MPI settings ---
+        ! ====================================
+        cpu_log_barrierwait=.F.,                ! Set an MPI-barrier at the beginning of each CPU time measurement
+        npex=2,                                 ! number of processors along x-direction of the virtual processor net
+                                                ! usually palmrun -X $processornum; if X and Y axis grid differ extremely, you should adjust 
+                                                ! the npex and npey to adapt the gird. for example, x:y=8:6, npex:npey=8:6
+        npey=5,
+        ! position of cross sction(s) fro output of 2d horizontal cross sections (grid point index i,j,k) 
+        ! up to 100 position xgrid/100,ygrid/100,zgrib/100 ==>(i,j,k)
+        ! section_xy=0,1,2,5,10,                  ! grid point index i ; the exact position (in x-direction) is given by i*dx or (i-0.5)*dx
+        ! section_xz=180,                         ! grid point index j ; same as above but in y-direction
+        ! section_yz=180,                         ! grid point index k ; same as above but in z-direction
+
+        /
+& radiation_parameters
+        radiation_scheme='clear-sky',
+        plant_lw_interact=.F.,
+        raytrace_discrete_azims=10,
+        raytrace_discrete_elevs=10,
+        dt_radiation=3600.,
+        /
+
+
+&wind_turbine_parameters
+        time_turbine_on  = 2.0,
+
+        n_turbines = 36,
+	hub_y =   1880,2020,1460,1600,1740,1880,2020,2160,2300,1460,1600,1740,1880,2020,2160,2300,2440,2580,520,660,800,1040,1180,1320,1460,1600,1740,1880,100,2400,380,520,660,800,1040,100,
+        hub_x =   100,400,900,1200,1500,1800,2100,2400,2700,2600,2900,3200,3500,3800,4100,4400,4700,5000,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,3600,3900,4200,4500,4800,5100,5400,5300,
+        hub_z =   120.0, 120.0, 120.0, 120.0, 120.0, 120.0, 120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,12.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,
+        rotor_radius  =    63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,63.0, 63.0, 63.0, 63.0,
+        nacelle_radius =    1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,1.5, 1.5, 1.5, 1.5,
+        tower_diameter =    4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,4.0, 4.0, 4.0, 4.0,
+
+        rotor_speed = 0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,
+        yaw_angle = 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,
+        tilt_angle = 0.0,
+        generator_power_rated = 5296610.0,
+        speed_control = .T.,
+        pitch_control = .T.,
+        pitch_angle = 0.0,
+        yaw_control = .T.,
+        yaw_speed = 0.01,
+
+        tower_cd   = 1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,
+        
+        segment_length_tangential = 1.0,
+        segment_width_radial  = 0.5,
+        
+        n_airfoils = 8, /
+&land_surface_parameters
+        soil_temperature = 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094,
+        surface_type='water',
+        /
+
+&nesting_offl_parameters
+        switch_off_module=.false., /
