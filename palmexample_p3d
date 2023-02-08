@@ -6,7 +6,6 @@ from distutils.core import setup
         !----------GRID---------------!
         !-----------------------------!
         ! dx,dy,dz all in (m)
-
         nx = 539, ny = 359, nz = 120,   ! actual X_Y grid number equal to nx+1,ny+1; (nx+1)*dx & (ny+1)*dy; in addiction, in z direction, the actual 
                                         !number equal to nz+2, one in the layer and other in the top
         dx = 10.0, dy = 10.0, dz = 10.0,
@@ -230,6 +229,7 @@ from distutils.core import setup
         ! section_yz=180,                         ! grid point index k ; same as above but in z-direction
 
         /
+
 & radiation_parameters
         radiation_scheme='clear-sky',
         plant_lw_interact=.F.,
@@ -240,9 +240,37 @@ from distutils.core import setup
 
 
 &wind_turbine_parameters
-        time_turbine_on  = 2.0,
+        switch_off_module=.F.                   ! wtm module swich
+        air_density=1.225,                      ! importance index which impact wind power produce
+        dt_data_output_wtm=0.0,                 ! output interval(s) for NetCDF data, 
+                                                ! this parameter does not affect the deprecated ASCII data output 
+                                                ! that is written at each time step. default values 0.0 will be output every time step.
+        gear_efficiency=1.0,                    ! efficiency of the gear: loss between rotor and generator
+        gear_ratio=97.0,                        ! gear ratio from rotor to generator
+        generator_efficiency=0.944,             ! Electric efficiency of the generator
+        generator_inertia=534.116,              ! inertia of the generator (in kg m^2)
+        generator_power_rated= 5296610.0,       ! Rated mechanical power of the wind turbine (in W), one for all
+        generator_speed_rated=121.6805,         ! Rated generator speed (in rad/s)
+        generator_torque_max=47402.91,          ! Maximum Torque of the generator (in Nm)
+        generator_torque_rate_max=15000.0,      ! Maximum generator torque rate (in Nm/s). 
+                                                ! The maximum rate at which the generator torque can be increased to avoid overloading 
+        n_airfoils=8,
 
-        n_turbines = 36,
+        time_turbine_on  = 0.0,         ! 
+
+        n_turbines = 36,                        ! number of the turbines to be included
+        ! =================================
+        ! define WindTurbine Location : hub_x, hub_y, hub_z
+        ! nacelle_radius: Riadius of the nacelle for each turbine (in m)
+        ! pitch_angle: pitch angle for a constant pitch angle (in degrees) when pitch_control = .F.
+        ! rotor_radius: Radius of the rotor (in m); this parameter needs to be specified for each turbine
+        ! rotor_speed: initial rotational speed fir each turbine( in rad s^-1)
+        ! tower_cd: Drag coefficient for each tower
+        ! tower_diameter: Diameter of the tower of the wind turbine used below the rotor.
+        ! yaw_angle: yaw angle for each turbine in degrees; a positive yaw means a rotation of the rotor in clockwise direction within the xy-plane.
+        !               a yaw angle equal to 0 means facing west.
+        ! == each WT need to be specified =
+        ! =================================
 	hub_y =   1880,2020,1460,1600,1740,1880,2020,2160,2300,1460,1600,1740,1880,2020,2160,2300,2440,2580,520,660,800,1040,1180,1320,1460,1600,1740,1880,100,2400,380,520,660,800,1040,100,
         hub_x =   100,400,900,1200,1500,1800,2100,2400,2700,2600,2900,3200,3500,3800,4100,4400,4700,5000,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,3600,3900,4200,4500,4800,5100,5400,5300,
         hub_z =   120.0, 120.0, 120.0, 120.0, 120.0, 120.0, 120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,12.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,
@@ -252,20 +280,42 @@ from distutils.core import setup
 
         rotor_speed = 0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9,
         yaw_angle = 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,
-        tilt_angle = 0.0,
-        generator_power_rated = 5296610.0,
-        speed_control = .T.,
-        pitch_control = .T.,
-        pitch_angle = 0.0,
-        yaw_control = .T.,
-        yaw_speed = 0.01,
-
+        pitch_angle = 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0,
         tower_cd   = 1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,1.2, 1.2, 1.2, 1.2,
+
+        pitch_rate=8.0,                 ! Maximum pitch rate (in degree/s)
+        ! -------------------------------
+        ! == region setting ============
+        region_15_min=70.16224,         ! lower generator speed boundary of region 1.5
+        ! Region 1.5 is a transition region between region 1 and 2, region 1 is before cut-in wind speed, the wind is used to accelerate the rotor, 
+        ! no power is produced. Region 1.5 is a start-up region and represents the lower limit of the generator speed 
+        ! therefore limiting the operational speed range of the wind turbine.
+        region_2_min=91.21091,          ! lower generator speed boundary of region 2
+        region_2_slope=2.332287,        ! slope constant for region 2; In region 2 a constant tip speed ratio is maintained to optimize the power 
+                                        ! capture. In this region the generator torque is proportional to the square of the filtered generator speed
+        ! -------------------------------
         
-        segment_length_tangential = 1.0,
-        segment_width_radial  = 0.5,
+        rotor_inertia=34784179.0,       ! Inertia of the rotor (in kg m2)
+        segment_length_tangential = 1.0,! length of each rotor segment the rotor area is divided into, in tangential direction, 
+                                        ! The default value is 1.0, in that case the tangential length of each segment is one grid spacing. 
+        segment_width_radial  = 0.5,    ! Length of each rotor segment the rotor area is divided into, in radial direction
+                                        ! he default value is 0.5, in that case the segments would have the width of half a grid spacing
+        smearing_kernel_size=2.0        ! Size of the smearing kernel given as multiples of the grid spacing dx
+                                        ! values relate to the grid resolution; in Coarse grid spacing you should set it smaller to reduce simulation 
+                                        ! error, which set to 1. But do not use values below 1.
         
-        n_airfoils = 8, /
+        tilt_angle = 0.0,
+        speed_control = .F.,            ! the speed control controls the rotational speed of the turbine for wind speeds
+        pitch_control = .F.,            ! parameter to switch on the pitch control
+        tip_loss_correction=.F.,        ! Parameter to switch on the tip loss correction
+        
+        yaw_control = .T.,              ! parameter to switch on the yaw controller.
+        yaw_misalignment_max=0.08726,   ! maximum tolerated yaw misalignment (in rad)
+        yaw_misalignment_min=0.008726,  ! minimum yaw misalignment for which the actuator stops (in rad)
+        yaw_speed = 0.01,               ! speed of the yaw actuator (in rad/s)
+
+        /
+
 &land_surface_parameters
         soil_temperature = 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094, 273.1600036621094,
         surface_type='water',
