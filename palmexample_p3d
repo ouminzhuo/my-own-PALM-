@@ -13,11 +13,11 @@ from distutils.core import setup
         dz_stretch_level = 1200,
         dz_stretch_factor=1.02,
         dz_stretch_level_end=999999.
-        !approximation ='boussinesq',
         !-----------------------------!
         !-----MODE setting------------!
         !-----------------------------!
-	approximation = 'anelastic',
+	approximation = 'anelastic',    ! psolver must change
+        !approximation ='boussinesq',   ! psolver='multigrib',
         check_realistic_q= .T.,
         cloud_droplets= .F.,  !parameter to swith on LCM
         conserve_volume_flow=.F., !if on, bc_lr='cyclic',bc_ns='cyclic',dp_external=.F.
@@ -43,9 +43,9 @@ from distutils.core import setup
         !-----Numerics setting--------!
         !-----------------------------!
         call_psolver_at_allsubsteps=.T.,        ! switch to steer the call of the pressure solver ,if momentum_advec='ws-scheme', it should be used
-        cfl_factor=0.9,                         ! Time step limiting factor,maximum allowed time step dt_max=dt=dt_max*cfl_max
-                                                ! default is 0.9 <== third order runge-kutta scheme and euler scheme; 
-                                                ! 0.8<==second-order Runge-Kutta scheme
+        ! cfl_factor=0.9.,                              ! Time step limiting factor,maximum allowed time step dt_max=dt=dt_max*cfl_max
+                                                        ! default is 0.9 <== third order runge-kutta scheme and euler scheme; 
+                                                        ! 0.8<==second-order Runge-Kutta scheme
         fft_method='fftw',                      ! FFT-method to be used; 1.'temperton-algorithm'; 2. 'singleton-algorithm';3. 'fftw'
         loop_optimization='cache',              ! 1.'cache' loop with i and j; 2. 'vector', 3d-loops 
         mg_cycles=4,                            ! Number of cycles to be used with the multigrid scheme; for cyclic boundary,mg_cycles=2; 
@@ -205,8 +205,8 @@ from distutils.core import setup
         disturbance_amplitude=0.25,             ! Maximum perturbation amplitude of the random perturbations imposed to the horizontal velocity field
         disturbance_energy_limit=0.01,          ! unpper limit value of the perturbation energy of the velocity field 
                                                 ! used as a criterion for imposing random perturbations in(m2/s2)
-        dt=1.0,                                 ! time step to be used by 3-d model (in s)
-        dt_max=100,                             ! Maximum allowed value of the time step (in s)
+        !dt=1.0,                                 ! time step to be used by 3-d model (in s) dt< 0.00001*dt_max (with_max=20.0)
+        dt_max=20,                             ! Maximum allowed value of the time step (in s)
         end_time = 3601.0,                      ! Simulation time of the 3Dmodel (in s)
         ! dt_restart=99999999.9,                ! Temporal interval at which a new restart run is to be carried out
         ! restart_data_format='fortran_binary', ! binary format of the input and output restart files. 
