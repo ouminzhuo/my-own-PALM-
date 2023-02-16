@@ -1,2 +1,2 @@
 # my-own-PALM-
-my own palm setting repositpry
+my own palm setting repository
